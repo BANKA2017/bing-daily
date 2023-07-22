@@ -1,0 +1,15 @@
+name = "bing-daily"
+main = "src/worker.js"
+compatibility_date = "2023-07-17"
+
+[vars]
+WORKERS_ALLOW_ORIGIN = ["*"]
+WORKERS_LOCALE = "zh-CN"
+
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "kdnet"
+database_id = "<DB_ID>"
+
+[triggers]
+crons = ["1 0 * * *"]
