@@ -53,7 +53,7 @@ const cron = async (event, env, ctx) => {
 
             for (const img of tmpList) {
 
-                const bingDailyImgBuffer = await (await fetch(`https://www.bing.com${img.url}`)).arrayBuffer()
+                const bingDailyImgBuffer = await (await fetch(`https://www.bing.com${img.urlbase}_UHD.jpg`)).arrayBuffer()
 
                 //https://stackoverflow.com/questions/40031688/javascript-arraybuffer-to-hex
                 const b2Upload = await (await fetch(b2UploadUrl.uploadUrl, {
