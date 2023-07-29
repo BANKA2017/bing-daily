@@ -29,9 +29,6 @@ const cron = async (event, env, ctx) => {
             if ((tmpList || []).length <= 0) {
                 return 0
             }
-            const stmt = env.DB.prepare("INSERT INTO bing (startdate, url, urlbase, copyright, copyrightlink, title, quiz, wp, hsh, drk, top, bot, hs) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-            await env.DB.batch(tmpList.map(img => stmt.bind(...Object.values(img))))
-            console.log(`bing daily: ` + tmpList.map(img => [img.startdate, img.url].join(" -> ")).join(', '))
 
             // upload img
             const applicationKeyId = env.SECRET_WORKERS_APPLICATION_KEY_ID
@@ -73,7 +70,9 @@ const cron = async (event, env, ctx) => {
                 responseList.push(b2Upload)
             }
             console.log(JSON.stringify(responseList))
-
+            const stmt = env.DB.prepare("INSERT INTO bing (startdate, url, urlbase, copyright, copyrightlink, title, quiz, wp, hsh, drk, top, bot, hs) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            await env.DB.batch(tmpList.map(img => stmt.bind(...Object.values(img))))
+            console.log(`bing daily: ` + tmpList.map(img => [img.startdate, img.url].join(" -> ")).join(', '))
 
             return responseList
         }
