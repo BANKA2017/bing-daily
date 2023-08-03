@@ -37,7 +37,7 @@ workersApi.get('/v1/data/list/', async (req, env) => {
     //date
     let date = Number(req.query.date) || 30000101 // AD 3000-01-01
 
-    const { results } = await env.DB.prepare("SELECT startdate, url, urlbase, copyright, copyrightlink, title, quiz FROM bing WHERE startdate < ?2 ORDER BY startdate DESC LIMIT ?1;").bind(count, date).all()
+    const { results } = await env.DB.prepare("SELECT startdate, url, urlbase, copyright, copyrightlink, title, quiz, blurhash, color, width, height FROM bing WHERE startdate < ?2 ORDER BY startdate DESC LIMIT ?1;").bind(count, date).all()
     //console.log(results, date)
     return env.json(apiTemplate(200, 'OK', results, 'online'), 200)
 })

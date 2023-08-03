@@ -8,7 +8,7 @@ WORKERS_LOCALE = "zh-CN"
 
 [[d1_databases]]
 binding = "DB" # i.e. available in your Worker on env.DB
-database_name = "kdnet"
+database_name = "<DB_NAME>"
 database_id = "<DB_ID>"
 
 [triggers]

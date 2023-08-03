@@ -428,6 +428,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bing-daily@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "bing-daily@workspace:."
+  dependencies:
+    "@types/node": ^20.4.3
+    better-sqlite3: ^8.5.0
+    blurhash: ^2.0.5
+    crypto-es: ^2.0.3
+    crypto-js: ^4.1.1
+    fast-average-color: ^9.3.0
+    inkjet: ^3.0.0
+    itty-router: ^3.0.12
+    wrangler: ^3.3.0
+  languageName: unknown
+  linkType: soft
+
 "bl@npm:^4.0.3":
   version: 4.1.0
   resolution: "bl@npm:4.1.0"
@@ -443,6 +459,13 @@ __metadata:
   version: 2.1.5
   resolution: "blake3-wasm@npm:2.1.5"
   checksum: 5088e929c722b52b9c28701c1760ab850a963692056a417b894c943030e3267f12138ae6409e79069b8d7d0401a411426147e8d812b65a49e303fa432af18871
+  languageName: node
+  linkType: hard
+
+"blurhash@npm:^2.0.5":
+  version: 2.0.5
+  resolution: "blurhash@npm:2.0.5"
+  checksum: aa4d6855bbaae116065b118a7b1e889648c15047e72048c28bab3db426a042ce1dc032a30c55a52da6140c314534841b984ab11cc68303668dde446d6ca53bc6
   languageName: node
   linkType: hard
 
@@ -862,6 +885,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fast-average-color@npm:^9.3.0":
+  version: 9.3.0
+  resolution: "fast-average-color@npm:9.3.0"
+  checksum: 0e24b7cedfc8d57b2d4196e37618d1aa0a77b5e2138cdb0b53761d4fffc29b4ddbe76f0574743dc84a240453eefb85ff93b14c2b1e33ef375bbd4011b233eec5
+  languageName: node
+  linkType: hard
+
 "file-uri-to-path@npm:1.0.0":
   version: 1.0.0
   resolution: "file-uri-to-path@npm:1.0.0"
@@ -877,19 +907,6 @@ __metadata:
   checksum: cc283f4e65b504259e64fd969bcf4def4eb08d85565e906b7d36516e87819db52029a76b6363d0f02d0d532f0033c9603b9e2d943d56ee3b0d4f7ad3328ff917
   languageName: node
   linkType: hard
-
-"floral-haze-dccc@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "floral-haze-dccc@workspace:."
-  dependencies:
-    "@types/node": ^20.4.3
-    better-sqlite3: ^8.5.0
-    crypto-es: ^2.0.3
-    crypto-js: ^4.1.1
-    itty-router: ^3.0.12
-    wrangler: ^3.3.0
-  languageName: unknown
-  linkType: soft
 
 "foreground-child@npm:^3.1.0":
   version: 3.1.1
@@ -1097,6 +1114,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"imageinfo@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "imageinfo@npm:1.0.4"
+  checksum: 6266c4dd636ef902d8aa3a82eb800ca6679b0257384016c58d230b22e126441baa6520218209f158885b9a1e33e2826ccf4be13b395507c1057f0effdb400bef
+  languageName: node
+  linkType: hard
+
 "imurmurhash@npm:^0.1.4":
   version: 0.1.4
   resolution: "imurmurhash@npm:0.1.4"
@@ -1132,6 +1156,16 @@ __metadata:
   version: 1.3.8
   resolution: "ini@npm:1.3.8"
   checksum: dfd98b0ca3a4fc1e323e38a6c8eb8936e31a97a918d3b377649ea15bdb15d481207a0dda1021efbd86b464cae29a0d33c1d7dcaf6c5672bee17fa849bc50a1b3
+  languageName: node
+  linkType: hard
+
+"inkjet@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "inkjet@npm:3.0.0"
+  dependencies:
+    imageinfo: ^1.0.4
+    webworkify: ^1.5.0
+  checksum: d68d0e15d0e75e52fa76a1f027520870cb4d27d40300feba97113f94d267fdb38dca752680272f6529026f29e0e16bcf2e724ccd78bff6e0ad26e58411223f29
   languageName: node
   linkType: hard
 
@@ -2080,6 +2114,13 @@ __metadata:
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"
   checksum: 474acf1146cb2701fe3b074892217553dfcf9a031280919ba1b8d651a068c9b15d863b7303cb15bd00a862b498e6cf4ad7b4a08fb134edd5a6f7641681cb54a2
+  languageName: node
+  linkType: hard
+
+"webworkify@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "webworkify@npm:1.5.0"
+  checksum: 426c10e0b94cac0678aed05fdf1abce98e8e11a523380537bab99fcd63df7c4b71b3630e61ab8052fdbd8d6e55e53700523b423cd475b258f95be5189d8cde49
   languageName: node
   linkType: hard
 

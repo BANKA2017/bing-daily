@@ -1,0 +1,29 @@
+name: Deploy
+
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js 18.x
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 18.x
+            - name: Yarn install
+              run: |
+                  yarn
+                  sed -i 's/<DB_NAME>"/${{ secrets.CF_D1_NAME }}/g' wrangler.toml
+                  sed -i 's/<DB_ID>/${{ secrets.CF_D1_ID }}/g' wrangler.toml
+            - name: Add mask
+              run: |
+                  echo "::add-mask::${{ secrets.CF_SECRET_DOMAIN }}"
+            - name: Deploy to workers
+              uses: cloudflare/wrangler-action@2.0.0
+              with:
+                  apiToken: ${{ secrets.CF_API_TOKEN }}
+                  accountId: ${{ secrets.CF_ACCOUNT_ID }}

@@ -2,6 +2,7 @@
   "name": "bing-daily",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",
     "start": "wrangler dev"
@@ -13,7 +14,10 @@
   },
   "dependencies": {
     "@types/node": "^20.4.3",
+    "blurhash": "^2.0.5",
     "crypto-es": "^2.0.3",
-    "crypto-js": "^4.1.1"
+    "crypto-js": "^4.1.1",
+    "fast-average-color": "^9.3.0",
+    "inkjet": "^3.0.0"
   }
 }

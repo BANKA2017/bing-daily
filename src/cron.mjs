@@ -1,5 +1,9 @@
 import { Hex } from 'crypto-es/lib/core.js'
 import { SHA1 } from 'crypto-es/lib/sha1'
+//import { TGPush } from './share.mjs'
+import { FastAverageColor } from 'fast-average-color'
+import inkjet from 'inkjet'
+import { encode } from 'blurhash'
 
 const cron = async (event, env, ctx) => {
 
@@ -11,7 +15,7 @@ const cron = async (event, env, ctx) => {
         if (Array.isArray(bingResponse?.images)) {
             const { results } = await env.DB.prepare("SELECT startdate FROM bing ORDER BY startdate DESC LIMIT 1;").all()
             //console.log(JSON.stringify(bingResponse.images, null, 4))
-            const tmpList = bingResponse.images.filter(img => Number(results[0].startdate) < Number(img.startdate)).map(img => ({
+            let tmpList = bingResponse.images.filter(img => Number(results[0].startdate) < Number(img.startdate)).map(img => ({
                 startdate: img.startdate,
                 url: img.url,
                 urlbase: img.urlbase,
@@ -48,9 +52,12 @@ const cron = async (event, env, ctx) => {
 
             const responseList = []
 
-            for (const img of tmpList) {
+            for (const index in tmpList) {
+                const img = tmpList[index]
 
                 const bingDailyImgBuffer = await (await fetch(`https://www.bing.com${img.urlbase}_UHD.jpg`)).arrayBuffer()
+                const bingDailyImgSmallBuffer = await (await fetch(`https://www.bing.com${img.urlbase}_UHD.jpg&rf=LaDigue_UHD.jpg&pid=hp&w=128&h=64&rs=1&c=4`)).arrayBuffer()
+
 
                 //https://stackoverflow.com/questions/40031688/javascript-arraybuffer-to-hex
                 const b2Upload = await (await fetch(b2UploadUrl.uploadUrl, {
@@ -68,9 +75,34 @@ const cron = async (event, env, ctx) => {
                 })).json()
                 //console.log(b2Upload)
                 responseList.push(b2Upload)
+
+                const fac = new FastAverageColor();
+                let color, blurhash, width, height
+
+                //small
+                inkjet.decode(bingDailyImgSmallBuffer, (err, decoded) => {
+                    //console.log(err, decoded)
+                    // decoded: { width: number, height: number, data: Uint8Array }
+                    color = fac.getColorFromArray4(new Uint8ClampedArray(decoded.data), { step: 5 });
+                    blurhash = encode(new Uint8ClampedArray(decoded.data), decoded.width, decoded.height, 4, 4)
+                })
+
+                //uhd
+                inkjet.decode(bingDailyImgBuffer, (err, decoded) => {
+                    //console.log(err, decoded)
+                    width = decoded.width
+                    height = decoded.height
+                })
+                tmpList[index].color = color[0].toString(16).padStart(2, '0') + color[1].toString(16).padStart(2, '0') + color[2].toString(16).padStart(2, '0')
+                tmpList[index].blurhash = blurhash
+                tmpList[index].width = width
+                tmpList[index].height = height
+
+                //TGPush()
             }
+            //console.log(JSON.stringify(tmpList))
             console.log(JSON.stringify(responseList))
-            const stmt = env.DB.prepare("INSERT INTO bing (startdate, url, urlbase, copyright, copyrightlink, title, quiz, wp, hsh, drk, top, bot, hs) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            const stmt = env.DB.prepare("INSERT INTO bing (startdate, url, urlbase, copyright, copyrightlink, title, quiz, wp, hsh, drk, top, bot, hs, color, blurhash, width, height) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
             await env.DB.batch(tmpList.map(img => stmt.bind(...Object.values(img))))
             console.log(`bing daily: ` + tmpList.map(img => [img.startdate, img.url].join(" -> ")).join(', '))
 
