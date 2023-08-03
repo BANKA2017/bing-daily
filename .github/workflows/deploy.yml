@@ -14,10 +14,9 @@ jobs:
               uses: actions/setup-node@v3
               with:
                   node-version: 18.x
-            - name: Yarn install
+            - name: Config
               run: |
-                  yarn
-                  sed -i 's/<DB_NAME>"/${{ secrets.CF_D1_NAME }}/g' wrangler.toml
+                  sed -i 's/<DB_NAME>/${{ secrets.CF_D1_NAME }}/g' wrangler.toml
                   sed -i 's/<DB_ID>/${{ secrets.CF_D1_ID }}/g' wrangler.toml
             - name: Add mask
               run: |
