@@ -1,26 +1,34 @@
-import { Router } from 'itty-router'
-import { PostBodyParser, json, xml, apiTemplate } from './share.mjs'
-//import cron from './cron.mjs'
+import { apiTemplate } from './share.mjs'
+import express from 'express'
+import { basePath } from './share.mjs'
+import Database from 'better-sqlite3';
+const app = express()
 
-const workersApi = Router()
+const db = new Database(basePath + '/../db/bing_kv.sqlite3');
+const EXPRESS_ALLOW_ORIGIN = ["*"]
 
-workersApi.all('*', (req, env) => {
-    env.json = json
-    env.xml = xml
-    env.PostBodyParser = PostBodyParser
-    req.cookies = Object.fromEntries(
-        (req.headers.get('cookie') || '')
-            .split(';')
-            .map((cookie) => cookie.trim().split('='))
-            .filter((cookie) => cookie.length === 2)
-    )
+app.use((req, res, next) => {
+    
+    if (EXPRESS_ALLOW_ORIGIN && req.headers.referer) {
+        const origin = new URL(req.headers.referer).origin
+        const tmpReferer = EXPRESS_ALLOW_ORIGIN.includes('*') ? '*' : EXPRESS_ALLOW_ORIGIN.includes(origin) ? origin : ''
+        if (tmpReferer) {
+            res.append('Access-Control-Allow-Origin', tmpReferer)
+        }
+    }
+    res.setHeader('X-Powered-By', 'Bing daily')
+    res.setHeader('Access-Control-Allow-Methods', '*')
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    next()
 })
 
 //favicon
-workersApi.all('/favicon.ico', () => new Response(null, { status: 200 }))
+app.all('/favicon.ico', (req, res) => {res.json(null)})
 
 //robots.txt
-workersApi.all('/robots.txt', () => new Response('User-agent: *\nDisallow: /*', { status: 200 }))
+app.all('/robots.txt', (req, res) => {
+    res.send('User-agent: *\nDisallow: /*')
+})
 
 // DO NOT UNCOMMENT, THE RESPONSE WILL LEAK B2 FILE INFO
 //workersApi.get('/test/upload/run', async (req, env) => {
@@ -28,21 +36,28 @@ workersApi.all('/robots.txt', () => new Response('User-agent: *\nDisallow: /*', 
 //    return env.json(apiTemplate(200, 'OK', [], 'online'), 200)
 //})
 
-workersApi.get('/v1/data/list/', async (req, env) => {
+app.get('/v1/data/list/', (req, res) => {
     //count
-    let count = Number(req.query.count) || 1
+    let count = Number(req.query.count) || 16
     if (count < 1) { count = 1 }
-    if (count > 10) { count = 10 }
+    if (count > 100) { count = 100 }
 
     //date
     let date = Number(req.query.date) || 30000101 // AD 3000-01-01
 
-    const { results } = await env.DB.prepare("SELECT startdate, url, urlbase, copyright, copyrightlink, title, quiz, blurhash, color, width, height FROM bing WHERE startdate < ?2 ORDER BY startdate DESC LIMIT ?1;").bind(count, date).all()
+    const results = db.prepare("SELECT startdate, url, urlbase, copyright, copyrightlink, title, quiz, blurhash, color, width, height FROM bing WHERE startdate < ? ORDER BY startdate DESC LIMIT ?;").all(date, count + 1)
+    const more = results.length === count + 1
     //console.log(results, date)
-    return env.json(apiTemplate(200, 'OK', results, 'online'), 200)
+    res.json(apiTemplate(200, 'OK', {images: results.slice(0, more ? -1 : undefined), more}, 'online'))
 })
 
-workersApi.all('*', () => new Response(JSON.stringify(apiTemplate(403, 'Invalid Request', {}, 'global_api')), { status: 403 }))
+app.all('*', (req, res) => res.status(403).json(apiTemplate(403, 'Invalid Request', {}, 'global_api')))
 
+app.use((err, req, res, next) => {
+    console.log(new Date(), err)
+    res.status(500).json(apiTemplate(500, 'Unknown error', {}, 'global_api'))
+})
 
-export default workersApi
+app.listen(3000, () => {
+    console.log(`V3Api listening on port 3000`)
+})

@@ -1,12 +1,17 @@
-Bing daily
+# Bing daily
 
 ---
 
 will update soon
 
-### Secret
+## ENV
 
 ```toml
-SECRET_WORKERS_APPLICATION_KEY_ID=""
-SECRET_WORKERS_APPLICATION_KEY=""
+B2_APPLICATION_KEY_ID=""
+B2_APPLICATION_KEY=""
+WORKERS_LOCALE='en-US'
 ```
+
+## Api
+
+`/v1/data/list/`

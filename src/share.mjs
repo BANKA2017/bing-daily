@@ -1,43 +1,10 @@
-const json = (data, status = 200) =>
-    new Response(JSON.stringify(data), {
-        status,
-        headers: {
-            'content-type': 'application/json'
-        }
-    })
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
 
-const xml = (data, status = 200) =>
-    new Response(data, {
-        status,
-        headers: {
-            'content-type': 'application/xml;charset=UTF-8'
-        }
-    })
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
-const PostBodyParser = async (req, defaultValue = new Map([])) => {
-    if (req.body) {
-        const reader = req.body.getReader()
-        const pipe = []
-        while (true) {
-            const { done, value } = await reader.read()
-            if (done) {
-                break
-            }
-            pipe.push(value)
-        }
-        //https://gist.github.com/72lions/4528834
-        let offset = 0
-        let body = new Uint8Array(pipe.reduce((acc, cur) => acc + cur.byteLength, 0))
-        for (const chunk of pipe) {
-            body.set(new Uint8Array(chunk), offset)
-            offset += chunk.byteLength
-        }
-        //TODO json parser
-        req.postBody = new URLSearchParams(new TextDecoder('utf-8').decode(body))
-    } else {
-        return defaultValue
-    }
-}
+const basePath = __dirname
 
 const apiTemplate = (code = 403, message = 'Invalid Request', data = {}, version = 'online') => {
     if (version === 'v1') {
@@ -47,4 +14,33 @@ const apiTemplate = (code = 403, message = 'Invalid Request', data = {}, version
     }
 }
 
-export { json, xml, PostBodyParser, apiTemplate }
+const TGPush = async (ALERT_TOKEN, ALERT_PUSH_TO, text = '') => {
+    if (ALERT_TOKEN.length) {
+        text = [...text]
+        const partCount = Math.ceil(text.length / 3000)
+        let tmpPartIndex = 0
+        for (; tmpPartIndex < partCount; tmpPartIndex++) {
+            try {
+                const response = (await fetch(`https://api.telegram.org/bot${ALERT_TOKEN}/sendMessage`, {
+                    headers: {
+                        'content-type': 'application/json',
+                    },
+                    method: "POST",
+                    body: JSON.stringify({
+                        chat_id: ALERT_PUSH_TO,
+                        text: text.slice(tmpPartIndex * 3000, tmpPartIndex * 3000 + 3000).join('')
+                    })
+                })).json()
+                if (response?.ok) {
+                    console.log(`TGPush: Successful to push log #part${tmpPartIndex} to chat ->${ALERT_PUSH_TO}<-`)
+                } else {
+                    console.log(`TGPush: Error #part${response?.description}`)
+                }
+            } catch (e) {
+                console.log(e)
+            }
+        }
+    }
+}
+
+export { apiTemplate, TGPush, basePath }
