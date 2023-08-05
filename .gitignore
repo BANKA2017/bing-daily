@@ -4,3 +4,5 @@ node_modules/
 .dev.vars
 .env.local
 t.mjs
+db/*
+!db/.gitkeep

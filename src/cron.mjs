@@ -6,6 +6,7 @@ import inkjet from 'inkjet'
 import { encode } from 'blurhash'
 import Database from 'better-sqlite3';
 import { basePath } from './share.mjs'
+import 'dotenv/config'
 
 const db = new Database(basePath + '/../db/bing_kv.sqlite3');
 //db.pragma('journal_mode = WAL');
