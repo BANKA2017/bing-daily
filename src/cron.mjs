@@ -7,6 +7,7 @@ import { encode } from 'blurhash'
 import Database from 'better-sqlite3';
 import { basePath } from './share.mjs'
 import 'dotenv/config'
+import axios from 'axios'
 
 const db = new Database(basePath + '/../db/bing_kv.sqlite3');
 //db.pragma('journal_mode = WAL');
@@ -17,7 +18,7 @@ const env = process.env
 const locale = env.WORKERS_LOCALE
 
 try {
-    const bingResponse = await (await fetch(`https://www.bing.com/HPImageArchive.aspx?idx=0&n=10&format=js&mkt=${locale}`)).json()
+    const bingResponse = (await axios(`https://www.bing.com/HPImageArchive.aspx?idx=0&n=10&format=js&mkt=${locale}`)).data
     if (Array.isArray(bingResponse?.images)) {
         const results = db.prepare("SELECT startdate FROM bing ORDER BY startdate DESC LIMIT 1;").all()
         //console.log(JSON.stringify(bingResponse.images, null, 4))
@@ -43,26 +44,26 @@ try {
         const applicationKeyId = env.B2_APPLICATION_KEY_ID
         const applicationKey = env.B2_APPLICATION_KEY
         //get account
-        const b2AuthorizeAccount = await (await fetch('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
+        const b2AuthorizeAccount = (await axios('https://api.backblazeb2.com/b2api/v2/b2_authorize_account', {
             headers: {
                 Authorization: 'Basic ' + btoa(`${applicationKeyId}:${applicationKey}`)
             }
-        })).json()
-        const b2UploadUrl = await (await fetch(`${b2AuthorizeAccount.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${b2AuthorizeAccount.allowed.bucketId}`, {
+        })).data
+        const b2UploadUrl = (await axios(`${b2AuthorizeAccount.apiUrl}/b2api/v2/b2_get_upload_url?bucketId=${b2AuthorizeAccount.allowed.bucketId}`, {
             headers: {
                 Authorization: b2AuthorizeAccount.authorizationToken
             }
-        })).json()
+        })).data
         const responseList = []
 
         for (const index in tmpList) {
             const img = tmpList[index]
 
-            const bingDailyImgBuffer = await (await fetch(`https://www.bing.com${img.urlbase}_UHD.jpg`)).arrayBuffer()
-            const bingDailyImgSmallBuffer = await (await fetch(`https://www.bing.com${img.urlbase}_UHD.jpg&rf=LaDigue_UHD.jpg&pid=hp&w=256&h=128&rs=1&c=4`)).arrayBuffer()
+            const bingDailyImgBuffer = (await axios(`https://www.bing.com${img.urlbase}_UHD.jpg`, { responseType: 'arraybuffer' })).data
+            const bingDailyImgSmallBuffer = (await axios(`https://www.bing.com${img.urlbase}_UHD.jpg&rf=LaDigue_UHD.jpg&pid=hp&w=256&h=128&rs=1&c=4`, { responseType: 'arraybuffer' })).data
 
             //https://stackoverflow.com/questions/40031688/javascript-arraybuffer-to-hex
-            const b2Upload = await (await fetch(b2UploadUrl.uploadUrl, {
+            const b2Upload = (await axios(b2UploadUrl.uploadUrl, {
                 headers: {
                     Authorization: b2UploadUrl.authorizationToken,
                     'Content-Type': 'image/jpeg',
@@ -77,9 +78,9 @@ try {
                         return tmpArray.join('')
                     })(bingDailyImgBuffer))).toString()
                 },
-                method: 'POST',
-                body: bingDailyImgBuffer
-            })).json()
+                method: 'post',
+                data: bingDailyImgBuffer
+            })).data
             //console.log(b2Upload)
             responseList.push(b2Upload)
             const fac = new FastAverageColor();
@@ -109,7 +110,7 @@ try {
         console.log(JSON.stringify(responseList))
         const stmt = db.prepare("INSERT INTO bing (startdate, url, urlbase, copyright, copyrightlink, title, quiz, wp, hsh, drk, top, bot, hs, color, blurhash, width, height) values (@startdate, @url, @urlbase, @copyright, @copyrightlink, @title, @quiz, @wp, @hsh, @drk, @top, @bot, @hs, @color, @blurhash, @width, @height)")
         db.transaction((imgs) => {
-            for (const img of imgs) {stmt.run(img)}
+            for (const img of imgs) { stmt.run(img) }
         })(tmpList)
         //db.batch(tmpList.map(img => stmt.bind(...Object.values(img))))
         console.log(`bing daily: ` + tmpList.map(img => [img.startdate, img.url].join(" -> ")).join(', '))
