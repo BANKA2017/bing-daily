@@ -2,8 +2,7 @@
 node_modules/
 .wrangler/
 .dev.vars
-.env.local
-.env
 t.mjs
 db/*
 !db/.gitkeep
+!db/settings_example.mjs

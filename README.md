@@ -4,12 +4,14 @@
 
 will update soon
 
-## ENV
+## SETTINGS
 
-```toml
-B2_APPLICATION_KEY_ID=""
-B2_APPLICATION_KEY=""
-WORKERS_LOCALE='en-US'
+`cp db/settings_example.mjs db/settings.mjs`
+
+```javascript
+const B2_APPLICATION_KEY_ID = ""
+const B2_APPLICATION_KEY = ""
+const WORKERS_LOCALE = 'en-US'
 ```
 
 ## Api

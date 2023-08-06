@@ -6,13 +6,17 @@ import inkjet from 'inkjet'
 import { encode } from 'blurhash'
 import Database from 'better-sqlite3';
 import { basePath } from './share.mjs'
-import 'dotenv/config'
 import axios from 'axios'
+import { B2_APPLICATION_KEY, B2_APPLICATION_KEY_ID, WORKERS_LOCALE } from '../db/settings.mjs'
 
 const db = new Database(basePath + '/../db/bing_kv.sqlite3');
 //db.pragma('journal_mode = WAL');
 
-const env = process.env
+const env = {
+    B2_APPLICATION_KEY,
+    B2_APPLICATION_KEY_ID,
+    WORKERS_LOCALE
+}
 
 // locale
 const locale = env.WORKERS_LOCALE
