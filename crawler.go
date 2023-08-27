@@ -447,7 +447,7 @@ func main() {
 
 		var uploadResponse *B2UploadResponse
 
-		uploadResponse, err = uploadToB2(b2AuthorizeAccount, b2UploadUrl, bingDailyImgSmallBuffer, v.Startdate)
+		uploadResponse, err = uploadToB2(b2AuthorizeAccount, b2UploadUrl, bingDailyImgBuffer, v.Startdate)
 		if err != nil {
 			panic(err)
 		}
