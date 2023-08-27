@@ -249,7 +249,7 @@ func getB2UploadUrl(b2AuthorizeAccount *B2AuthorizeAccount) (*B2UploadUrl, error
 	}, b2UploadUrl)
 }
 
-func uploadToB2(b2AuthorizeAccount *B2AuthorizeAccount, b2UploadUrl *B2UploadUrl, imageBuffer []byte) (*B2UploadResponse, error) {
+func uploadToB2(b2AuthorizeAccount *B2AuthorizeAccount, b2UploadUrl *B2UploadUrl, imageBuffer []byte, startDate int) (*B2UploadResponse, error) {
 	var uploadResponse B2UploadResponse
 	/// readJson(ROOTPATH+"/b2response.json", &uploadResponse)
 	/// return &uploadResponse, nil
@@ -265,7 +265,7 @@ func uploadToB2(b2AuthorizeAccount *B2AuthorizeAccount, b2UploadUrl *B2UploadUrl
 	return fetchJson(b2UploadUrl.UploadURL, "POST", imageBuffer, map[string]string{
 		"Authorization":     b2UploadUrl.AuthorizationToken,
 		"Content-Type":      "image/jpeg",
-		"X-Bz-File-Name":    "bing/" + "20230819" + ".jpg",
+		"X-Bz-File-Name":    "bing/" + strconv.Itoa(startDate) + ".jpg",
 		"Content-Length":    strconv.Itoa(len(imageBuffer)),
 		"X-Bz-Content-Sha1": hex.EncodeToString(_sha1[:]),
 	}, uploadResponse)
@@ -447,7 +447,7 @@ func main() {
 
 		var uploadResponse *B2UploadResponse
 
-		uploadResponse, err = uploadToB2(b2AuthorizeAccount, b2UploadUrl, bingDailyImgSmallBuffer)
+		uploadResponse, err = uploadToB2(b2AuthorizeAccount, b2UploadUrl, bingDailyImgSmallBuffer, v.Startdate)
 		if err != nil {
 			panic(err)
 		}
