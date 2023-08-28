@@ -249,24 +249,16 @@ func getB2UploadUrl(b2AuthorizeAccount *B2AuthorizeAccount) (*B2UploadUrl, error
 	}, b2UploadUrl)
 }
 
-func uploadToB2(b2AuthorizeAccount *B2AuthorizeAccount, b2UploadUrl *B2UploadUrl, imageBuffer []byte, startDate int) (*B2UploadResponse, error) {
+func uploadToB2(b2AuthorizeAccount *B2AuthorizeAccount, b2UploadUrl *B2UploadUrl, fileBuffer []byte, fileName string, contentType string) (*B2UploadResponse, error) {
 	var uploadResponse B2UploadResponse
 	/// readJson(ROOTPATH+"/b2response.json", &uploadResponse)
 	/// return &uploadResponse, nil
-	_sha1 := sha1.Sum(imageBuffer)
-	/// fmt.Println(hex.EncodeToString(_sha1[:]))
-	/// fmt.Println(map[string]string{
-	/// 	"Authorization":     b2UploadUrl.AuthorizationToken,
-	/// 	"Content-Type":      "image/jpeg",
-	/// 	"X-Bz-File-Name":    "bing/" + "20230819" + ".jpg",
-	/// 	"Content-Length":    strconv.Itoa(len(imageBuffer)),
-	/// 	"X-Bz-Content-Sha1": hex.EncodeToString(_sha1[:]),
-	/// })
-	return fetchJson(b2UploadUrl.UploadURL, "POST", imageBuffer, map[string]string{
+	_sha1 := sha1.Sum(fileBuffer)
+	return fetchJson(b2UploadUrl.UploadURL, "POST", fileBuffer, map[string]string{
 		"Authorization":     b2UploadUrl.AuthorizationToken,
-		"Content-Type":      "image/jpeg",
-		"X-Bz-File-Name":    "bing/" + strconv.Itoa(startDate) + ".jpg",
-		"Content-Length":    strconv.Itoa(len(imageBuffer)),
+		"Content-Type":      contentType,
+		"X-Bz-File-Name":    fileName,
+		"Content-Length":    strconv.Itoa(len(fileBuffer)),
 		"X-Bz-Content-Sha1": hex.EncodeToString(_sha1[:]),
 	}, uploadResponse)
 }
@@ -433,6 +425,8 @@ func main() {
 		panic(b2UploadUrl.Message)
 	}
 
+	var uploadResponse *B2UploadResponse
+
 	for _, v := range tmpDataList {
 		//https://www.bing.com${img.urlbase}_UHD.jpg
 		//https://www.bing.com${img.urlbase}_UHD.jpg&rf=LaDigue_UHD.jpg&pid=hp&w=256&h=128&rs=1&c=4
@@ -445,9 +439,7 @@ func main() {
 			panic(err)
 		}
 
-		var uploadResponse *B2UploadResponse
-
-		uploadResponse, err = uploadToB2(b2AuthorizeAccount, b2UploadUrl, bingDailyImgBuffer, v.Startdate)
+		uploadResponse, err = uploadToB2(b2AuthorizeAccount, b2UploadUrl, bingDailyImgBuffer, "bing/"+strconv.Itoa(v.Startdate)+".jpg", "image/jpeg")
 		if err != nil {
 			panic(err)
 		}
@@ -470,4 +462,11 @@ func main() {
 		panic(err)
 	}
 	saveTo(ROOTPATH+"/bing.json", dataBuffer)
+
+	// upload to b2
+	uploadResponse, err = uploadToB2(b2AuthorizeAccount, b2UploadUrl, dataBuffer, "bing/bing.json", "text/json")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(uploadResponse)
 }
