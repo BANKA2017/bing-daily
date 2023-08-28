@@ -4,15 +4,19 @@
 
 will update soon
 
-## SETTINGS
+## Settings
 
-`cp db/settings_example.mjs db/settings.mjs`
+`cp .env.example .env`
 
-```javascript
-const B2_APPLICATION_KEY_ID = ""
-const B2_APPLICATION_KEY = ""
-const WORKERS_LOCALE = 'en-US'
+```env
+B2_APPLICATION_KEY_ID=""
+B2_APPLICATION_KEY=""
+WORKERS_LOCALE=""
 ```
+
+## Build
+
+`./build.sh`
 
 ## Api
 
