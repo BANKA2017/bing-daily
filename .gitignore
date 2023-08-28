@@ -6,4 +6,4 @@ node_modules/
 t.mjs
 db/*
 !db/.gitkeep
-!db/settings_example.mjs
+build/
