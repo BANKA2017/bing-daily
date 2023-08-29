@@ -7,6 +7,11 @@ type ApiTemplate struct {
 	Version string `json:"version"`
 }
 
+type ApiImgList struct {
+	Image []SavedData `json:"image"`
+	More  bool        `json:"more"`
+}
+
 type SavedData struct {
 	Blurhash      string `json:"blurhash"`
 	Bot           int    `json:"bot"`

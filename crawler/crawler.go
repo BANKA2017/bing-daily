@@ -17,9 +17,9 @@ import (
 	"sort"
 	"strconv"
 
-	"bing.image.nest.moe/m/v2/types"
+	"github.com/BANKA2017/bing-daily/types"
 
-	"bing.image.nest.moe/m/v2/dbio"
+	"github.com/BANKA2017/bing-daily/dbio"
 	Blurhash "github.com/bbrks/go-blurhash"
 	"github.com/spf13/viper"
 )

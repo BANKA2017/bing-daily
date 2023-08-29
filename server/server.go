@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"bing.image.nest.moe/m/v2/types"
+	"github.com/BANKA2017/bing-daily/types"
+	"golang.org/x/exp/slices"
 
-	"bing.image.nest.moe/m/v2/dbio"
+	"github.com/BANKA2017/bing-daily/dbio"
 	"github.com/labstack/echo/v4"
 )
 
@@ -21,7 +22,7 @@ func apiTemplate[T any](code int, message string, data T, version string) types.
 }
 
 func echoReject(c echo.Context) error {
-	var response = apiTemplate(403, "Invalid Request", make(map[string]interface{}, 0), "global_api")
+	var response = apiTemplate(403, "Invalid Request", make(map[string]interface{}, 0), "bing")
 	return c.JSON(http.StatusForbidden, response)
 }
 
@@ -31,6 +32,38 @@ func echoFavicon(c echo.Context) error {
 
 func echoRobots(c echo.Context) error {
 	return c.String(http.StatusOK, "User-agent: *\nDisallow: /*")
+}
+
+func isValidDate(_date int64) bool {
+	year := _date / 10000
+	month := (_date % 10000) / 100
+	date := _date % 100
+
+	isLeapYear := (year%4 == 0 && year%100 != 0) || (year%400 != 0)
+
+	if month < 0 || month > 12 || date < 0 || date > 31 || (slices.Contains([]int64{4, 6, 9, 11}, month) && date > 30) || month == 2 && ((isLeapYear && date > 29) || (!isLeapYear && date > 28)) {
+		return false
+	} else {
+		return true
+	}
+}
+
+func findImgIndex(imgData []types.SavedData, date int64, lIndex, rIndex int) int {
+	var cIndex = (rIndex-lIndex)/2 + lIndex
+
+	if !isValidDate(date) || int(date) < imgData[0].Startdate || int(date) > imgData[len(imgData)-1].Startdate {
+		return -1
+	}
+
+	if imgData[cIndex].Startdate > int(date) {
+		return findImgIndex(imgData, date, lIndex, cIndex)
+	} else if imgData[cIndex].Startdate == int(date) {
+		return cIndex
+	} else if cIndex == lIndex && imgData[cIndex].Startdate != int(date) {
+		return -1
+	} else {
+		return findImgIndex(imgData, date, cIndex, rIndex)
+	}
 }
 
 func findImageData(c echo.Context) error {
@@ -56,25 +89,33 @@ func findImageData(c echo.Context) error {
 	err = dbio.DbioRead(&imgData)
 	if err != nil {
 		fmt.Println(err)
-		return c.JSON(http.StatusInternalServerError, apiTemplate(500, "Unable to read db", make(map[string]interface{}, 0), "global_api"))
+		return c.JSON(http.StatusInternalServerError, apiTemplate(500, "Unable to read db", make(map[string]interface{}, 0), "bing"))
 	}
 
 	// find day
 	// fmt.Println(dateN, countN)
+	tmpIndex := findImgIndex(imgData, dateN, 0, len(imgData)-1)
 	var tmpImgData []types.SavedData
-	for k, v := range imgData {
-		if v.Startdate == int(dateN) {
-			tmpImgData = imgData[k : k+int(countN)]
+	if tmpIndex > -1 {
+		rIndex := tmpIndex + int(countN+1)
+		if rIndex > len(imgData) {
+			rIndex = len(imgData)
 		}
+		tmpImgData = imgData[tmpIndex:rIndex]
 	}
 
 	if len(tmpImgData) == 0 {
 		tmpImgData = make([]types.SavedData, 0)
 	}
 
-	// TODO more...
+	var imgList types.ApiImgList
+	imgList.More = len(tmpImgData) == int(countN)+1
+	imgList.Image = tmpImgData
+	if imgList.More {
+		imgList.Image = imgList.Image[:len(tmpImgData)-1]
+	}
 
-	return c.JSON(http.StatusOK, apiTemplate(200, "OK", tmpImgData, "global_api"))
+	return c.JSON(http.StatusOK, apiTemplate(200, "OK", imgList, "bing"))
 }
 
 func main() {
