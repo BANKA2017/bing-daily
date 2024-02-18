@@ -11,18 +11,26 @@ import (
 	"image/color"
 	_ "image/jpeg"
 	"io"
-	"math"
 	"net/http"
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/BANKA2017/bing-daily/types"
 
 	"github.com/BANKA2017/bing-daily/dbio"
 	Blurhash "github.com/bbrks/go-blurhash"
+	m "github.com/ericpauley/go-quantize/quantize"
 	"github.com/spf13/viper"
 )
+
+func padStart(str string, length int, pad string) string {
+	if len(str) >= length {
+		return str
+	}
+	return strings.Repeat(pad, length-len(str)) + str
+}
 
 func fetchJson[T any](_url string, _method string, _body []byte, _headers map[string]string, responseTemplate T) (*T, error) {
 	var req *http.Request
@@ -133,10 +141,10 @@ func uploadToB2(b2AuthorizeAccount *types.B2AuthorizeAccount, b2UploadUrl *types
 }
 
 type ImageMeta struct {
-	Width    int    `json:"width"`
-	Height   int    `json:"height"`
-	Color    string `json:"color"`
-	Blurhash string `json:"blurhash"`
+	Width    int      `json:"width"`
+	Height   int      `json:"height"`
+	Color    []string `json:"color"`
+	Blurhash string   `json:"blurhash"`
 }
 
 func getImageMeta(imgBuffer, smallImgBuffer []byte) (ImageMeta, error) {
@@ -151,28 +159,12 @@ func getImageMeta(imgBuffer, smallImgBuffer []byte) (ImageMeta, error) {
 	ImageMeta.Width = imgSize.X
 	ImageMeta.Height = imgSize.Y
 
-	var redSum float64
-	var greenSum float64
-	var blueSum float64
-
-	for x := 0; x < imgSize.X; x++ {
-		for y := 0; y < imgSize.Y; y++ {
-			pixel := imageMeta.At(x, y)
-			col := color.RGBAModel.Convert(pixel).(color.RGBA)
-
-			redSum += float64(col.R)
-			greenSum += float64(col.G)
-			blueSum += float64(col.B)
-		}
+	q := m.MedianCutQuantizer{}
+	p := q.Quantize(make([]color.Color, 0, 5), imageMeta)
+	for _, color := range p {
+		tmpColorR, tmpColorG, tmpColorB, _ := color.RGBA()
+		ImageMeta.Color = append(ImageMeta.Color, padStart(strconv.FormatInt(int64(tmpColorR>>8), 16), 2, "0")+padStart(strconv.FormatInt(int64(tmpColorG>>8), 16), 2, "0")+padStart(strconv.FormatInt(int64(tmpColorB>>8), 16), 2, "0"))
 	}
-
-	imgArea := float64(imgSize.X * imgSize.Y)
-
-	redAverage := math.Round(redSum / imgArea)
-	greenAverage := math.Round(greenSum / imgArea)
-	blueAverage := math.Round(blueSum / imgArea)
-
-	ImageMeta.Color = strconv.FormatInt(int64(redAverage), 16) + strconv.FormatInt(int64(greenAverage), 16) + strconv.FormatInt(int64(blueAverage), 16)
 
 	smallImageMeta, _, err := image.Decode(bytes.NewReader(smallImgBuffer))
 	if err != nil {
@@ -187,7 +179,6 @@ func getImageMeta(imgBuffer, smallImgBuffer []byte) (ImageMeta, error) {
 	ImageMeta.Blurhash = hash
 
 	return ImageMeta, nil
-
 }
 
 func main() {

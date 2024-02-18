@@ -13,23 +13,23 @@ type ApiImgList struct {
 }
 
 type SavedData struct {
-	Blurhash      string `json:"blurhash"`
-	Bot           int    `json:"bot"`
-	Color         string `json:"color"`
-	Copyright     string `json:"copyright"`
-	Copyrightlink string `json:"copyrightlink"`
-	Drk           int    `json:"drk"`
-	Height        int    `json:"height"`
-	Hs            string `json:"hs"`
-	Hsh           string `json:"hsh"`
-	Quiz          string `json:"quiz"`
-	Startdate     int    `json:"startdate"`
-	Title         string `json:"title"`
-	Top           int    `json:"top"`
-	URL           string `json:"url"`
-	Urlbase       string `json:"urlbase"`
-	Width         int    `json:"width"`
-	Wp            int    `json:"wp"`
+	Blurhash      string   `json:"blurhash"`
+	Bot           int      `json:"bot"`
+	Color         []string `json:"color"`
+	Copyright     string   `json:"copyright"`
+	Copyrightlink string   `json:"copyrightlink"`
+	Drk           int      `json:"drk"`
+	Height        int      `json:"height"`
+	Hs            string   `json:"hs"`
+	Hsh           string   `json:"hsh"`
+	Quiz          string   `json:"quiz"`
+	Startdate     int      `json:"startdate"`
+	Title         string   `json:"title"`
+	Top           int      `json:"top"`
+	URL           string   `json:"url"`
+	Urlbase       string   `json:"urlbase"`
+	Width         int      `json:"width"`
+	Wp            int      `json:"wp"`
 }
 
 type BingImageInfoImage struct {
