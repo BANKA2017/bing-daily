@@ -4,13 +4,13 @@ go 1.21
 
 require (
 	github.com/bbrks/go-blurhash v1.1.1
+	github.com/ericpauley/go-quantize v0.0.0-20200331213906-ae555eb2afa4
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/spf13/viper v1.18.2
 	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3
 )
 
 require (
-	github.com/ericpauley/go-quantize v0.0.0-20200331213906-ae555eb2afa4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
