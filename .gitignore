@@ -1,3 +1,10 @@
 .env
+.idea/
 build/
 bing.json
+jscrawler/files/
+test/
+
+image2/original_js.js
+image2/private_color.go
+image2/_private_color_copy.go

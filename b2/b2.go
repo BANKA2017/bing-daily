@@ -1,65 +1,13 @@
-package types
+package b2
 
-type ApiTemplate struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Data    any    `json:"data"`
-	Version string `json:"version"`
-}
+import (
+	"crypto/sha1"
+	"encoding/base64"
+	"encoding/hex"
+	"strconv"
 
-type ApiImgList struct {
-	Image []SavedData `json:"image"`
-	More  bool        `json:"more"`
-}
-
-type SavedData struct {
-	Blurhash      string   `json:"blurhash"`
-	Bot           int      `json:"bot"`
-	Color         []string `json:"color"`
-	Copyright     string   `json:"copyright"`
-	Copyrightlink string   `json:"copyrightlink"`
-	Drk           int      `json:"drk"`
-	Height        int      `json:"height"`
-	Hs            string   `json:"hs"`
-	Hsh           string   `json:"hsh"`
-	Quiz          string   `json:"quiz"`
-	Startdate     int      `json:"startdate"`
-	Title         string   `json:"title"`
-	Top           int      `json:"top"`
-	URL           string   `json:"url"`
-	Urlbase       string   `json:"urlbase"`
-	Width         int      `json:"width"`
-	Wp            int      `json:"wp"`
-}
-
-type BingImageInfoImage struct {
-	Startdate     string `json:"startdate"`
-	Fullstartdate string `json:"fullstartdate"`
-	Enddate       string `json:"enddate"`
-	URL           string `json:"url"`
-	Urlbase       string `json:"urlbase"`
-	Copyright     string `json:"copyright"`
-	Copyrightlink string `json:"copyrightlink"`
-	Title         string `json:"title"`
-	Quiz          string `json:"quiz"`
-	Wp            bool   `json:"wp"`
-	Hsh           string `json:"hsh"`
-	Drk           int    `json:"drk"`
-	Top           int    `json:"top"`
-	Bot           int    `json:"bot"`
-	Hs            []any  `json:"hs"`
-}
-
-type BingImageInfo struct {
-	Images   []BingImageInfoImage `json:"images"`
-	Tooltips struct {
-		Loading  string `json:"loading"`
-		Previous string `json:"previous"`
-		Next     string `json:"next"`
-		Walle    string `json:"walle"`
-		Walls    string `json:"walls"`
-	} `json:"tooltips"`
-}
+	"github.com/BANKA2017/bing-daily/dbio"
+)
 
 type B2AuthorizeAccount struct {
 	Code                    string `json:"code,omitempty"`
@@ -117,4 +65,38 @@ type B2UploadResponse struct {
 		Mode      any `json:"mode,omitempty"`
 	} `json:"serverSideEncryption,omitempty"`
 	UploadTimestamp int64 `json:"uploadTimestamp,omitempty"`
+}
+
+func GetB2AuthorizeAccount(applicationKeyId string, applicationKey string) (*B2AuthorizeAccount, error) {
+	/// var b2AuthorizeAccount B2AuthorizeAccount
+	/// readJson(ROOTPATH+"/b2.json", &b2AuthorizeAccount)
+	/// return &b2AuthorizeAccount, nil
+	var b2AuthorizeAccount B2AuthorizeAccount
+	return dbio.FetchJson("https://api.backblazeb2.com/b2api/v2/b2_authorize_account", "GET", nil, map[string]string{
+		"Authorization": "Basic" + base64.StdEncoding.EncodeToString([]byte(applicationKeyId+":"+applicationKey)),
+	}, b2AuthorizeAccount)
+}
+
+func GetB2UploadUrl(b2AuthorizeAccount *B2AuthorizeAccount) (*B2UploadUrl, error) {
+	/// var b2UploadUrl B2UploadUrl
+	/// readJson(ROOTPATH+"/b2upload.json", &b2UploadUrl)
+	/// return &b2UploadUrl, nil
+	var b2UploadUrl B2UploadUrl
+	return dbio.FetchJson(b2AuthorizeAccount.APIURL+"/b2api/v2/b2_get_upload_url?bucketId="+b2AuthorizeAccount.Allowed.BucketID, "GET", nil, map[string]string{
+		"Authorization": b2AuthorizeAccount.AuthorizationToken,
+	}, b2UploadUrl)
+}
+
+func UploadToB2(b2UploadUrl *B2UploadUrl, fileBuffer []byte, fileName string, contentType string) (*B2UploadResponse, error) {
+	var uploadResponse B2UploadResponse
+	/// readJson(ROOTPATH+"/b2response.json", &uploadResponse)
+	/// return &uploadResponse, nil
+	_sha1 := sha1.Sum(fileBuffer)
+	return dbio.FetchJson(b2UploadUrl.UploadURL, "POST", fileBuffer, map[string]string{
+		"Authorization":     b2UploadUrl.AuthorizationToken,
+		"Content-Type":      contentType,
+		"X-Bz-File-Name":    fileName,
+		"Content-Length":    strconv.Itoa(len(fileBuffer)),
+		"X-Bz-Content-Sha1": hex.EncodeToString(_sha1[:]),
+	}, uploadResponse)
 }

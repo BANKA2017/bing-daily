@@ -6,18 +6,11 @@ will update soon
 
 ## Settings
 
-`cp .env.example .env`
-
-```env
-B2_APPLICATION_KEY_ID=""
-B2_APPLICATION_KEY=""
-WORKERS_LOCALE=""
-```
-
-## Build
-
-`./build.sh`
+check `dbio/env.go`
 
 ## Api
 
-`/v1/data/list/`
+- `/v1/data/list/[?count=<int64>[&date=<int64>]]`
+  - count: `[1 -> 100]`
+  - date: `yyyymmdd (20090102)`
+  - mkt: `zh-cn/en-us/ja-jp/es-es/en-ca/en-au/de-de/fr-fr/it-it/en-nz/en-gb`
