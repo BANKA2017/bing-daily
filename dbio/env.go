@@ -33,8 +33,8 @@ func InitEnv() {
 	// b2
 	flag.StringVar(&B2ApplicationKeyId, "b2_app_key_id", "", "B2_APPLICATION_KEY_ID")
 	flag.StringVar(&B2ApplicationKey, "b2_app_key", "", "B2_APPLICATION_KEY")
-	flag.StringVar(&WorkersLocale, "b2_upload_mkt", "", "One of \"en-us,zh-cn,ja-jp,es-es,en-ca,en-au,de-de,fr-fr,it-it,en-nz,en-gb\", or keep empty.")
-	// en-us,zh-cn,ja-jp,es-es,en-ca,en-au,de-de,fr-fr,it-it,en-nz(row),en-gb
+	flag.StringVar(&WorkersLocale, "b2_upload_mkt", "", "One of \"en-us,zh-cn,ja-jp,es-es,en-ca,en-au,de-de,fr-fr,it-it,en-gb,en-in,pt-br\", or keep empty.")
+	// en-us,zh-cn,ja-jp,es-es,en-ca,en-au(row)=en-nz(row),de-de,fr-fr,it-it,en-gb
 
 	flag.Parse()
 

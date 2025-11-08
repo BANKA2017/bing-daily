@@ -39,10 +39,10 @@ func ImageList(c echo.Context) error {
 	}
 
 	mkt := strings.ToUpper(q.Mkt)
-	if !slices.Contains(bing.ValidMkt, mkt) && mkt != "row" {
-		mkt = "zh-cn"
-	} else if mkt == "en-nz" {
-		mkt = "row"
+	if !slices.Contains(bing.ValidMkt, mkt) && mkt != "ROW" {
+		mkt = "ZH-CN"
+	} else if mkt == "EN-NZ" || mkt == "EN-AU" {
+		mkt = "ROW"
 	}
 
 	mktDate := bing.LatestDate[mkt]
