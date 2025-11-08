@@ -51,8 +51,8 @@ type SavedData2 struct {
 	Title       string `json:"title"`
 	Headline    string `json:"headline"`
 	Description string `json:"description"`
-	QuickFact   string `json:"quick_fact"`
-	Copyright   string `json:"copyright"`
+	// QuickFact   string `json:"quick_fact"`
+	Copyright string `json:"copyright"`
 
 	// bing links
 	TriviaUrl    string `json:"trivia_url"` // quiz
@@ -76,6 +76,16 @@ type BingImageInfoImage struct {
 	Copyright     string `json:"copyright"`
 	Copyrightlink string `json:"copyrightlink"`
 	Title         string `json:"title"`
+	Desc          string `json:"desc"`
+	Desc2         string `json:"desc2,omitempty"`
+	Desc3         string `json:"desc3,omitempty"`
+	Desc4         string `json:"desc4,omitempty"`
+	Desc5         string `json:"desc5,omitempty"`
+	Desc6         string `json:"desc6,omitempty"`
+	Desc7         string `json:"desc7,omitempty"`
+	Desc8         string `json:"desc8,omitempty"`
+	Desc9         string `json:"desc9,omitempty"`
+	Desc10        string `json:"desc10,omitempty"`
 	Quiz          string `json:"quiz"`
 	Wp            bool   `json:"wp"`
 	Hsh           string `json:"hsh"`
@@ -86,14 +96,10 @@ type BingImageInfoImage struct {
 }
 
 type BingImageInfo struct {
-	Images   []BingImageInfoImage `json:"images"`
-	Tooltips struct {
-		Loading  string `json:"loading"`
-		Previous string `json:"previous"`
-		Next     string `json:"next"`
-		Walle    string `json:"walle"`
-		Walls    string `json:"walls"`
-	} `json:"tooltips"`
+	Market struct {
+		Mkt string `json:"mkt"`
+	} `json:"market"`
+	Images []BingImageInfoImage `json:"images"`
 }
 
 type BingImageInfoImage2 struct {
@@ -127,12 +133,13 @@ type BingImageInfo2 struct {
 	MediaContents []BingImageInfoImage2 `json:"MediaContents,omitempty"`
 }
 
+// https://www.bing.com/HPImageArchive.aspx?n=7&idx=0&format=js&pid=opal&mbl=1&desc=1&mkt=zh-cn
 func GetImgInfo(locale string) (*BingImageInfo, error) {
 	/// var bingImageInfo BingImageInfo
 	/// readJson(ROOTPATH+"/bing.json", &bingImageInfo)
 	/// return &bingImageInfo, nil
 	var bingImageInfo BingImageInfo
-	return dbio.FetchJson("https://www.bing.com/HPImageArchive.aspx?idx=0&n=10&format=js&mkt="+locale, "GET", nil, nil, bingImageInfo)
+	return dbio.FetchJson("https://www.bing.com/HPImageArchive.aspx?idx=0&n=10&format=js&pid=opal&mbl=1&desc=1&mkt="+locale, "GET", nil, nil, bingImageInfo)
 }
 
 func GetImgInfo2(locale string) (*BingImageInfo2, error) {
@@ -143,6 +150,8 @@ func GetImgInfo2(locale string) (*BingImageInfo2, error) {
 	return dbio.FetchJson("https://www.bing.com/hp/api/model?mkt="+locale, "GET", nil, nil, bingImageInfo2)
 }
 
+// https://wallpaper.sapphire.microsoftapp.net/api/v1/app/photo/list/bing/1/10000
+
 // var MemBingImgMetaCache = make(map[int]*SavedData)
 // var MemBingImgMetaCache []*SavedData2
 //
@@ -150,7 +159,7 @@ func GetImgInfo2(locale string) (*BingImageInfo2, error) {
 // 	return dbio.DbioRead(&MemBingImgMetaCache)
 // }
 
-var ValidMkt = strings.Split(strings.ToUpper("en-us,zh-cn,ja-jp,es-es,en-ca,en-au,de-de,fr-fr,it-it,en-nz,en-gb"), ",")
+var ValidMkt = strings.Split(strings.ToUpper("en-us,zh-cn,ja-jp,es-es,en-ca,en-au,de-de,fr-fr,it-it,en-nz,en-gb,en-in,pt-br"), ",")
 
 func PDate(_date int64) int {
 	var year = int(_date / 10000)

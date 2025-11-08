@@ -16,15 +16,22 @@ import (
 
 var err error
 
+var testmode bool
+
 func main() {
 	dbio.InitEnv()
 
-	dbio.GormDB.R, dbio.GormDB.W, err = dbio.ConnectToMySQL(dbio.DBUser, dbio.DBPassword, dbio.DBHost, dbio.DBDatabase, dbio.DBCert, logger.Info, "bing-daily")
+	logLevel := logger.Error
+	if testmode {
+		logLevel = logger.Info
+	}
+
+	dbio.GormDB.R, dbio.GormDB.W, err = dbio.ConnectToMySQL(dbio.DBUser, dbio.DBPassword, dbio.DBHost, dbio.DBDatabase, dbio.DBCert, logLevel, "bing-daily")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	dbio.GormMemCacheDB.R, dbio.GormMemCacheDB.W, err = dbio.ConnectToSQLite("file::memory:?cache=shared", logger.Info, "bing-daily")
+	dbio.GormMemCacheDB.R, dbio.GormMemCacheDB.W, err = dbio.ConnectToSQLite("file::memory:?cache=shared", logLevel, "bing-daily")
 	if err != nil {
 		log.Fatal(err)
 	}

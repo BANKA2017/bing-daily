@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
+	"regexp"
 	"slices"
 	"sort"
 	"strconv"
@@ -17,6 +19,61 @@ import (
 	"github.com/BANKA2017/bing-daily/image2"
 	"gorm.io/gorm"
 )
+
+func ParseCopyright(s string) (title, copyright string) {
+	s = strings.TrimSpace(s)
+	if i := strings.LastIndex(s, "("); i != -1 && strings.HasSuffix(s, ")") {
+		title = strings.TrimSpace(s[:i])
+		copyright = strings.TrimSuffix(strings.TrimSpace(s[i+1:]), ")")
+	} else {
+		title = s
+	}
+	return
+}
+
+// "/th?id=OHR.LagoonNebula_ZH-CN3890147543"
+func ParseURLBase(urlbase string) (name, market, hash string, ok bool) {
+	re := regexp.MustCompile(`OHR\.([^_]+)_(\D+)(\d+)`)
+	m := re.FindStringSubmatch(urlbase)
+	if len(m) == 4 {
+		name, market, hash, ok = m[1], m[2], m[3], true
+	}
+	return
+}
+
+func JoinDescs(m *bing.BingImageInfoImage) string {
+	var parts []string
+	descs := []string{
+		m.Desc, m.Desc2, m.Desc3, m.Desc4, m.Desc5,
+		m.Desc6, m.Desc7, m.Desc8, m.Desc9, m.Desc10,
+	}
+	for _, d := range descs {
+		if d != "" {
+			parts = append(parts, strings.TrimSpace(d))
+		}
+	}
+	return strings.Join(parts, "\n")
+}
+
+func BuildSearchLink(copyrightLink, date string) (string, error) {
+	u, err := url.Parse(copyrightLink)
+	if err != nil {
+		return "", err
+	}
+
+	q := u.Query().Get("q")
+	form := u.Query().Get("form")
+	if q == "" {
+		return "", fmt.Errorf("no q param in url")
+	}
+	if form == "" {
+		form = "hpcapt"
+	}
+
+	result := fmt.Sprintf(`/search?q=%s&form=%s&filters=HpDate:"%s_1600"+mgzv3configlist:"BingQA_Encyclopedia_Layout"`,
+		url.QueryEscape(q), form, date)
+	return result, nil
+}
 
 func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) error {
 	noB2 := B2ApplicationKey == "" || B2ApplicationKeyId == ""
@@ -60,34 +117,36 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 
 		var tmpDataList []*bing.SavedData2
 
-		bingData, err := bing.GetImgInfo2(mkt)
+		bingData, err := bing.GetImgInfo(mkt)
 		if err != nil {
 			return err
 		}
 
-		for _, v := range bingData.MediaContents {
-			tmpStartDate, _ := strconv.ParseInt(v.Ssd, 10, 64)
-			tmpStartDate = int64(bing.PDate(tmpStartDate))
+		for _, v := range bingData.Images {
+			tmpStartDate, _ := strconv.ParseInt(v.Startdate, 10, 64)
 			if tmpStartDate > mktLatestDate {
-				u := v.ImageContent.Image.Wallpaper
-				if u == "" {
-					u = v.ImageContent.Image.URL
-				}
+				// qf, _ := v.ImageContent.QuickFact.MarshalJSON()
 
-				qf, _ := v.ImageContent.QuickFact.MarshalJSON()
+				title, cpy := ParseCopyright(v.Copyright)
+				name, market, hash, _ := ParseURLBase(v.Urlbase)
+
+				desc := JoinDescs(&v)
+
+				backstageUrl, _ := BuildSearchLink(v.Copyrightlink, strconv.Itoa(int(tmpStartDate)))
+				quizLink := strings.ReplaceAll(v.Quiz, v.Startdate, strconv.Itoa(int(bing.NDate(tmpStartDate))))
 
 				tmpDataList = append(tmpDataList, &bing.SavedData2{
-					Title:        v.ImageContent.Title,
-					Headline:     v.ImageContent.Headline,
-					Description:  v.ImageContent.Description,
-					QuickFact:    string(qf),
-					Copyright:    v.ImageContent.Copyright,
-					TriviaUrl:    v.ImageContent.TriviaURL,
-					BackstageUrl: v.ImageContent.BackstageURL,
-					Name:         v.Name,
-					Market:       v.Market,
-					Hash:         v.Hash,
-					Url:          u,
+					Title:       title,
+					Headline:    v.Title,
+					Description: desc,
+					// QuickFact:    string(qf),
+					Copyright:    cpy,
+					TriviaUrl:    quizLink,
+					BackstageUrl: backstageUrl,
+					Name:         name,
+					Market:       market,
+					Hash:         hash,
+					Url:          v.URL,
 					Date:         int(tmpStartDate),
 				})
 			}
@@ -152,13 +211,13 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 			// bing.MemBingImgMetaCache = append(bing.MemBingImgMetaCache, v)
 
 			DBImg = append(DBImg, &model.Img2{
-				Blurhash:     v.Blurhash,
-				Color:        strings.Join(v.Color, ","),
-				Height:       int64(v.Height),
-				Width:        int64(v.Width),
-				Headline:     v.Headline,
-				Description:  v.Description,
-				QuickFact:    v.QuickFact,
+				Blurhash:    v.Blurhash,
+				Color:       strings.Join(v.Color, ","),
+				Height:      int64(v.Height),
+				Width:       int64(v.Width),
+				Headline:    v.Headline,
+				Description: v.Description,
+				// QuickFact:    v.QuickFact,
 				TriviaURL:    v.TriviaUrl,
 				URL:          v.Url,
 				Date:         int32(v.Date),

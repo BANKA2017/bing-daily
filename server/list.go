@@ -77,14 +77,14 @@ func ImageList(c echo.Context) error {
 	for i := 0; i < len(DBImg); i++ {
 		d := DBImg[i]
 		SavedData[i] = &bing.SavedData2{
-			Blurhash:     d.Blurhash,
-			Color:        strings.Split(d.Color, ","),
-			Height:       int(d.Height),
-			Width:        int(d.Width),
-			Title:        d.Title,
-			Headline:     d.Headline,
-			Description:  d.Description,
-			QuickFact:    d.QuickFact,
+			Blurhash:    d.Blurhash,
+			Color:       strings.Split(d.Color, ","),
+			Height:      int(d.Height),
+			Width:       int(d.Width),
+			Title:       d.Title,
+			Headline:    d.Headline,
+			Description: d.Description,
+			// QuickFact:    d.QuickFact,
 			Copyright:    d.Copyright,
 			TriviaUrl:    d.TriviaURL,
 			BackstageUrl: d.BackstageURL,
