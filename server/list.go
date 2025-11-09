@@ -25,9 +25,11 @@ type ImageDTO struct {
 }
 
 func ImageList(c echo.Context) error {
+	var imgList ApiImgList
+
 	q := new(ImageDTO)
 	if err := c.Bind(q); err != nil {
-		return c.JSON(http.StatusInternalServerError, apiTemplate(500, "Invalid Query", EmptyArray, "bd@api"))
+		return c.JSON(http.StatusInternalServerError, apiTemplate(500, "Invalid Query", imgList, "bd@api"))
 	}
 
 	var countN = q.Count
@@ -39,20 +41,20 @@ func ImageList(c echo.Context) error {
 	}
 
 	mkt := strings.ToUpper(q.Mkt)
-	if !slices.Contains(bing.ValidMkt, mkt) && mkt != "ROW" {
-		mkt = "ZH-CN"
-	} else if mkt == "EN-NZ" || mkt == "EN-AU" {
-		mkt = "ROW"
+	if !slices.Contains(bing.ValidMkt, mkt) {
+		if mkt == "" {
+			mkt = "ZH-CN"
+		} else {
+			mkt = "ROW"
+		}
 	}
 
 	mktDate := bing.LatestDate[mkt]
 
 	// find day
 	if dateN > mktDate {
-		return c.JSON(http.StatusOK, apiTemplate(404, "Out of range", EmptyArray, "bd@api"))
-	}
-
-	if dateN == 0 {
+		return c.JSON(http.StatusOK, apiTemplate(404, "Out of range", imgList, "bd@api"))
+	} else if dateN <= 0 {
 		dateN = mktDate
 	}
 
@@ -61,7 +63,7 @@ func ImageList(c echo.Context) error {
 
 	if err := dbio.GormMemCacheDB.R.Model(&model.Img2{}).Where("date >= ? AND market = ?", dateN, mkt).Limit(int(countN) + 1).Order("date").Find(&DBImg).Error; err != nil {
 		log.Println(err)
-		return c.JSON(http.StatusInternalServerError, apiTemplate(500, "Failed", EmptyArray, "bd@api"))
+		return c.JSON(http.StatusInternalServerError, apiTemplate(500, "Failed", imgList, "bd@api"))
 	}
 
 	slices.Reverse(DBImg)
@@ -96,7 +98,6 @@ func ImageList(c echo.Context) error {
 		}
 	}
 
-	var imgList ApiImgList
 	imgList.More = more
 	imgList.Image = SavedData
 
