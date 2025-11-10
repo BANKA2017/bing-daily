@@ -122,7 +122,8 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 
 		bingData, err := bing.GetImgInfo(mkt)
 		if err != nil {
-			return err
+			log.Println(err)
+			continue
 		}
 
 		for _, v := range bingData.Images {
@@ -184,25 +185,29 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 				urlbase := "/th?id=OHR." + v.Name + "_" + v.Market + v.Hash
 				bingDailyImgBuffer, err := dbio.FetchFile("https://www.bing.com" + urlbase + "_UHD.jpg")
 				if err != nil {
-					return err
+					log.Println(err)
+					continue
 				}
 
 				if !noB2 && mkt == WorkersLocale {
 					uploadResponse, err = b2.UploadToB2(b2UploadUrl, bingDailyImgBuffer, "bing/"+strconv.Itoa(v.Date)+".jpg", "image2/jpeg")
 					if err != nil {
-						return err
+						log.Println(err)
+						continue
 					}
 					fmt.Println(uploadResponse)
 				}
 
 				img, err := image2.GetImg(bingDailyImgBuffer)
 				if err != nil {
-					return err
+					log.Println(err)
+					continue
 				}
 
 				meta, err = image2.GetImgMeta(img, v.Name)
 				if err != nil {
-					return err
+					log.Println(err)
+					continue
 				}
 			}
 
@@ -273,7 +278,8 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 		})
 
 		if err != nil {
-			return err
+			log.Println(err)
+			continue
 		}
 
 		err = dbio.GormMemCacheDB.W.Transaction(func(tx *gorm.DB) error {
@@ -288,7 +294,8 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 		})
 
 		if err != nil {
-			return err
+			log.Println(err)
+			continue
 		}
 
 		fmt.Println("bing-daily: Done", mkt)
