@@ -113,11 +113,6 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 	// }
 
 	for _, mkt := range bing.ValidMkt {
-		if mkt == "EN-AU" {
-			mkt = "ROW"
-		}
-		mktLatestDate := bing.LatestDate[mkt]
-
 		var tmpDataList []*bing.SavedData2
 
 		bingData, err := bing.GetImgInfo(mkt)
@@ -125,6 +120,11 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 			log.Println(err)
 			continue
 		}
+
+		if mkt == "EN-AU" {
+			mkt = "ROW"
+		}
+		mktLatestDate := bing.LatestDate[mkt]
 
 		for _, v := range bingData.Images {
 			tmpStartDate, _ := strconv.ParseInt(v.Startdate, 10, 64)
