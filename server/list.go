@@ -47,6 +47,8 @@ func ImageList(c echo.Context) error {
 		} else {
 			mkt = "ROW"
 		}
+	} else if mkt == "EN-AU" {
+		mkt = "ROW"
 	}
 
 	mktDate := bing.LatestDate[mkt]
