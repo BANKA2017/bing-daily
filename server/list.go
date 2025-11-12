@@ -26,6 +26,7 @@ type ImageDTO struct {
 
 func ImageList(c echo.Context) error {
 	var imgList ApiImgList
+	imgList.Image = make([]*bing.SavedData2, 0)
 
 	q := new(ImageDTO)
 	if err := c.Bind(q); err != nil {

@@ -139,7 +139,7 @@ func GetImgInfo(locale string) (*BingImageInfo, error) {
 	/// readJson(ROOTPATH+"/bing.json", &bingImageInfo)
 	/// return &bingImageInfo, nil
 	var bingImageInfo BingImageInfo
-	return dbio.FetchJson("https://www.bing.com/HPImageArchive.aspx?idx=0&n=10&format=js&pid=opal&mbl=1&desc=1&mkt="+locale, "GET", nil, nil, bingImageInfo)
+	return dbio.FetchJson("https://www.bing.com/HPImageArchive.aspx?idx=0&n=10&format=js&pid=opal&mbl=1&desc=1&video=1&mkt="+locale, "GET", nil, nil, bingImageInfo)
 }
 
 func GetImgInfo2(locale string) (*BingImageInfo2, error) {
