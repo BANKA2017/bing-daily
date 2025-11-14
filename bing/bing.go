@@ -159,7 +159,7 @@ func GetImgInfo2(locale string) (*BingImageInfo2, error) {
 // 	return dbio.DbioRead(&MemBingImgMetaCache)
 // }
 
-var ValidMkt = strings.Split(strings.ToUpper("en-us,zh-cn,ja-jp,es-es,en-ca,en-au,de-de,fr-fr,it-it,en-gb,en-in,pt-br"), ",")
+var ValidMkt = strings.Split(strings.ToUpper("en-us,zh-cn,ja-jp,es-es,en-ca,en-au,de-de,fr-fr,fr-ca,it-it,en-gb,en-in,pt-br"), ",")
 
 func PDate(_date int64) int {
 	var year = int(_date / 10000)
