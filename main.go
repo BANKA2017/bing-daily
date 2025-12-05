@@ -47,10 +47,7 @@ func main() {
 	dbio.GormDB.R.Model(&model.Img2{}).Find(&img2)
 
 	for i := 0; i < len(img2); i += 300 {
-		end := i + 300
-		if end > len(img2) {
-			end = len(img2)
-		}
+		end := min(i+300, len(img2))
 		dbio.GormMemCacheDB.W.Create(img2[i:end])
 	}
 
