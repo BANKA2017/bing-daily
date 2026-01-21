@@ -11,11 +11,6 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// server
-//var host string
-
-var err error
-
 var testmode bool
 
 func main() {
@@ -26,13 +21,15 @@ func main() {
 		logLevel = logger.Info
 	}
 
-	dbio.GormDB.R, dbio.GormDB.W, err = dbio.ConnectToMySQL(dbio.DBUser, dbio.DBPassword, dbio.DBHost, dbio.DBDatabase, dbio.DBCert, logLevel, "bing-daily")
-	if err != nil {
+	dbio.GormDB.LogLevel = logLevel
+	dbio.GormDB.ServicePrefix = "bing-daily"
+	if err := dbio.GormDB.SetDBAuth(dbio.DBUser, dbio.DBPassword, dbio.DBHost, dbio.DBDatabase, dbio.DBCert).Connect(); err != nil {
 		log.Fatal(err)
 	}
 
-	dbio.GormMemCacheDB.R, dbio.GormMemCacheDB.W, err = dbio.ConnectToSQLite("file::memory:?cache=shared", logLevel, "bing-daily")
-	if err != nil {
+	dbio.GormMemCacheDB.LogLevel = logLevel
+	dbio.GormMemCacheDB.ServicePrefix = "bing-daily-cache"
+	if err := dbio.GormMemCacheDB.SetDBPath("file::memory:?cache=shared").Connect(); err != nil {
 		log.Fatal(err)
 	}
 
