@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"strconv"
 
 	"github.com/BANKA2017/bing-daily/dbio"
@@ -38,33 +39,20 @@ type B2UploadUrl struct {
 }
 
 type B2UploadResponse struct {
-	Code          string `json:"code,omitempty"`
-	Message       string `json:"message,omitempty"`
-	Status        int    `json:"status,omitempty"`
-	AccountID     string `json:"accountId,omitempty"`
-	Action        string `json:"action,omitempty"`
-	BucketID      string `json:"bucketId,omitempty"`
-	ContentLength int    `json:"contentLength,omitempty"`
-	ContentMd5    string `json:"contentMd5,omitempty"`
-	ContentSha1   string `json:"contentSha1,omitempty"`
-	ContentType   string `json:"contentType,omitempty"`
-	FileID        string `json:"fileId,omitempty"`
-	FileInfo      struct {
-	} `json:"fileInfo,omitempty"`
-	FileName      string `json:"fileName,omitempty"`
-	FileRetention struct {
-		IsClientAuthorizedToRead bool `json:"isClientAuthorizedToRead,omitempty"`
-		Value                    any  `json:"value,omitempty"`
-	} `json:"fileRetention,omitempty"`
-	LegalHold struct {
-		IsClientAuthorizedToRead bool `json:"isClientAuthorizedToRead,omitempty"`
-		Value                    any  `json:"value,omitempty"`
-	} `json:"legalHold,omitempty"`
-	ServerSideEncryption struct {
-		Algorithm any `json:"algorithm,omitempty"`
-		Mode      any `json:"mode,omitempty"`
-	} `json:"serverSideEncryption,omitempty"`
-	UploadTimestamp int64 `json:"uploadTimestamp,omitempty"`
+	Code                 string          `json:"code,omitempty"`
+	Message              string          `json:"message,omitempty"`
+	Status               int             `json:"status,omitempty"`
+	Action               string          `json:"action,omitempty"`
+	ContentLength        int             `json:"contentLength,omitempty"`
+	ContentMd5           string          `json:"contentMd5,omitempty"`
+	ContentSha1          string          `json:"contentSha1,omitempty"`
+	ContentType          string          `json:"contentType,omitempty"`
+	FileID               string          `json:"fileId,omitempty"`
+	FileInfo             json.RawMessage `json:"fileInfo,omitempty"`
+	FileName             string          `json:"fileName,omitempty"`
+	LegalHold            json.RawMessage `json:"legalHold,omitempty"`
+	ServerSideEncryption json.RawMessage `json:"serverSideEncryption,omitempty"`
+	UploadTimestamp      int64           `json:"uploadTimestamp,omitempty"`
 }
 
 func GetB2AuthorizeAccount(applicationKeyId string, applicationKey string) (*B2AuthorizeAccount, error) {

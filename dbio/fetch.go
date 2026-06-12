@@ -3,7 +3,6 @@ package dbio
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -30,29 +29,23 @@ func FetchJson[T any](_url string, _method string, _body []byte, _headers map[st
 	//	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	//}
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	for k, v := range _headers {
 		req.Header.Set(k, v)
 	}
 	/// fmt.Println(req.Header.Values("Content-Type"))
-	/// fmt.Println(req)
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 	response, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
-	/// fmt.Println(string(response))
 
 	if err = json.Unmarshal(response, &responseTemplate); err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	return &responseTemplate, err
@@ -61,13 +54,11 @@ func FetchJson[T any](_url string, _method string, _body []byte, _headers map[st
 func FetchFile(_url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", _url, nil)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	defer resp.Body.Close()

@@ -1,7 +1,7 @@
 package server
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"slices"
 	"strings"
@@ -65,7 +65,7 @@ func ImageList(c echo.Context) error {
 	// var DBColor []*model.Color
 
 	if err := dbio.GormMemCacheDB.R.Model(&model.Img2{}).Where("date >= ? AND market = ?", dateN, mkt).Limit(int(countN) + 1).Order("date").Find(&DBImg).Error; err != nil {
-		log.Println(err)
+		slog.Error("get images list failed", "error", err)
 		return c.JSON(http.StatusInternalServerError, apiTemplate(500, "Failed", imgList, "bd@api"))
 	}
 

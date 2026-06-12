@@ -19,6 +19,9 @@ var B2ApplicationKeyId string
 var B2ApplicationKey string
 var WorkersLocale string
 
+// test
+var TestMode bool
+
 func GetEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
@@ -42,6 +45,9 @@ func InitEnv() {
 	flag.StringVar(&B2ApplicationKey, "b2_app_key", GetEnv("b2_app_key", ""), "B2_APPLICATION_KEY")
 	flag.StringVar(&WorkersLocale, "b2_upload_mkt", GetEnv("b2_upload_mkt", ""), "One of \"en-us,zh-cn,ja-jp,es-es,en-ca,en-au,de-de,fr-fr,it-it,en-gb,en-in,pt-br\", or keep empty.")
 	// en-us,zh-cn,ja-jp,es-es,en-ca,en-au(row)=en-nz(row),de-de,fr-fr,it-it,en-gb
+
+	// test
+	flag.BoolVar(&TestMode, "testmode", false, "test mode")
 
 	flag.Parse()
 }

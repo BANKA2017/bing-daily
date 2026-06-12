@@ -1,9 +1,10 @@
 package workers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/url"
 	"regexp"
 	"slices"
@@ -81,7 +82,7 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 	WorkersLocale = strings.ToUpper(WorkersLocale)
 
 	if WorkersLocale == "" || !slices.Contains(bing.ValidMkt, WorkersLocale) {
-		log.Println("bing-daily: Some environment variables are empty")
+		slog.Error("invalid b2 mkt, will not upload")
 		noB2 = true
 	}
 
@@ -117,7 +118,7 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 
 		bingData, err := bing.GetImgInfo(mkt)
 		if err != nil {
-			log.Println(err)
+			slog.Error("get image info failed", "mkt", mkt, "error", err)
 			continue
 		}
 
@@ -157,7 +158,7 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 		}
 
 		if len(tmpDataList) == 0 {
-			fmt.Println("bing-daily: No updated", mkt)
+			slog.Info("no update", "mkt", mkt)
 			continue
 		}
 
@@ -185,28 +186,31 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 				urlbase := "/th?id=OHR." + v.Name + "_" + v.Market + v.Hash
 				bingDailyImgBuffer, err := dbio.FetchFile("https://www.bing.com" + urlbase + "_UHD.jpg")
 				if err != nil {
-					log.Println(err)
+					slog.Error("get image buffer failed", "mkt", mkt, "error", err)
 					continue
 				}
 
 				if !noB2 && mkt == WorkersLocale {
 					uploadResponse, err = b2.UploadToB2(b2UploadUrl, bingDailyImgBuffer, "bing/"+strconv.Itoa(v.Date)+".jpg", "image2/jpeg")
 					if err != nil {
-						log.Println(err)
+						slog.Error("upload to b2 failed", "mkt", mkt, "error", err)
 						continue
 					}
-					fmt.Println(uploadResponse)
+
+					b2uploadresBytes, _ := json.Marshal(uploadResponse)
+
+					slog.Info("uploaded to b2", "mkt", mkt, "filename", uploadResponse.FileName, "response", string(b2uploadresBytes))
 				}
 
 				img, err := image2.GetImg(bingDailyImgBuffer)
 				if err != nil {
-					log.Println(err)
+					slog.Error("parse image failed", "mkt", mkt, "error", err)
 					continue
 				}
 
 				meta, err = image2.GetImgMeta(img, v.Name)
 				if err != nil {
-					log.Println(err)
+					slog.Error("get image meta failed", "mkt", mkt, "error", err)
 					continue
 				}
 			}
@@ -258,13 +262,6 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 		// }
 		// dbio.DbioWrite(dataBuffer)
 
-		// upload to b2
-		// uploadResponse, err = b2.UploadToB2(b2UploadUrl, dataBuffer, "bing/bing.json", "text/json")
-		// if err != nil {
-		// 	return err
-		// }
-		// fmt.Println(uploadResponse)
-
 		// save to db
 		err = dbio.GormDB.W.Transaction(func(tx *gorm.DB) error {
 			if err := tx.Model(&model.Img2{}).Create(&DBImg).Error; err != nil {
@@ -278,7 +275,7 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 		})
 
 		if err != nil {
-			log.Println(err)
+			slog.Error("save to db failed", "mkt", mkt, "error", err)
 			continue
 		}
 
@@ -294,11 +291,11 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 		})
 
 		if err != nil {
-			log.Println(err)
+			slog.Error("save to cache db failed", "mkt", mkt, "error", err)
 			continue
 		}
 
-		fmt.Println("bing-daily: Done", mkt)
+		slog.Info("daily image info saved", "mkt", mkt)
 
 		time.Sleep(time.Second)
 	}

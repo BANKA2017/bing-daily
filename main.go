@@ -1,40 +1,52 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/BANKA2017/bing-daily/dbio"
 	"github.com/BANKA2017/bing-daily/dbio/model"
 	"github.com/BANKA2017/bing-daily/server"
 	"github.com/BANKA2017/bing-daily/workers"
+	"github.com/kdnetwork/code-snippet/go/log"
 	"gorm.io/gorm/logger"
 )
 
-var testmode bool
-
 func main() {
+	dbio.InitLogger()
+
 	dbio.InitEnv()
 
 	logLevel := logger.Error
-	if testmode {
+	if dbio.TestMode {
 		logLevel = logger.Info
+		log.SlogLevel.Set(slog.LevelDebug)
 	}
 
 	dbio.GormDB.LogLevel = logLevel
 	dbio.GormDB.ServicePrefix = "bing-daily"
+	dbio.GormDB.SetLogger(logger.NewSlogLogger(
+		slog.Default(), logger.Config{
+			// copy from gorm default logger config
+			SlowThreshold:             200 * time.Millisecond,
+			LogLevel:                  dbio.GormDB.LogLevel,
+			IgnoreRecordNotFoundError: false,
+			Colorful:                  false,
+		},
+	))
+
 	if err := dbio.GormDB.SetDBAuth(dbio.DBUser, dbio.DBPassword, dbio.DBHost, dbio.DBDatabase, dbio.DBCert).Connect(); err != nil {
-		log.Fatal(err)
+		log.Fatal("connect to db failed", "error", err)
 	}
 
 	dbio.GormMemCacheDB.LogLevel = logLevel
 	dbio.GormMemCacheDB.ServicePrefix = "bing-daily-cache"
 	if err := dbio.GormMemCacheDB.SetDBPath("file::memory:?cache=shared").Connect(); err != nil {
-		log.Fatal(err)
+		log.Fatal("connect to cache db failed", "error", err)
 	}
 
 	if err := dbio.GormMemCacheDB.W.AutoMigrate(&model.Img2{}, &model.Color{}); err != nil {
-		log.Fatal(err)
+		log.Fatal("init cache db failed", "error", err)
 	}
 
 	// init cache
@@ -61,19 +73,18 @@ func main() {
 	defer oneHourInterval.Stop()
 
 	workers.UpdateLatestDate()
-	go workers.GetImgsWorker(dbio.B2ApplicationKeyId, dbio.B2ApplicationKey, dbio.WorkersLocale)
+	if err := workers.GetImgsWorker(dbio.B2ApplicationKeyId, dbio.B2ApplicationKey, dbio.WorkersLocale); err != nil {
+		slog.Error("get images worker failed", "error", err)
+	}
 
 	if dbio.Addr != "" {
 		go server.Server(dbio.Addr)
 	}
-	for {
-		select {
-		case <-oneHourInterval.C:
-			if err := workers.GetImgsWorker(dbio.B2ApplicationKeyId, dbio.B2ApplicationKey, dbio.WorkersLocale); err != nil {
-				log.Println(err)
-			}
-
-			workers.UpdateLatestDate()
+	for range oneHourInterval.C {
+		if err := workers.GetImgsWorker(dbio.B2ApplicationKeyId, dbio.B2ApplicationKey, dbio.WorkersLocale); err != nil {
+			slog.Error("get images worker failed", "error", err)
 		}
+
+		workers.UpdateLatestDate()
 	}
 }
