@@ -186,31 +186,31 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 				urlbase := "/th?id=OHR." + v.Name + "_" + v.Market + v.Hash
 				bingDailyImgBuffer, err := dbio.FetchFile("https://www.bing.com" + urlbase + "_UHD.jpg")
 				if err != nil {
-					slog.Error("get image buffer failed", "mkt", mkt, "error", err)
+					slog.Error("get image buffer failed", "mkt", mkt, "date", v.Date, "error", err)
 					continue
 				}
 
 				if !noB2 && mkt == WorkersLocale {
 					uploadResponse, err = b2.UploadToB2(b2UploadUrl, bingDailyImgBuffer, "bing/"+strconv.Itoa(v.Date)+".jpg", "image2/jpeg")
 					if err != nil {
-						slog.Error("upload to b2 failed", "mkt", mkt, "error", err)
+						slog.Error("upload to b2 failed", "mkt", mkt, "date", v.Date, "error", err)
 						continue
 					}
 
-					b2uploadresBytes, _ := json.Marshal(uploadResponse)
+					b2uploadResBytes, _ := json.Marshal(uploadResponse)
 
-					slog.Info("uploaded to b2", "mkt", mkt, "filename", uploadResponse.FileName, "response", string(b2uploadresBytes))
+					slog.Info("uploaded to b2", "mkt", mkt, "date", v.Date, "filename", uploadResponse.FileName, "response", string(b2uploadResBytes))
 				}
 
 				img, err := image2.GetImg(bingDailyImgBuffer)
 				if err != nil {
-					slog.Error("parse image failed", "mkt", mkt, "error", err)
+					slog.Error("parse image failed", "mkt", mkt, "date", v.Date, "error", err)
 					continue
 				}
 
 				meta, err = image2.GetImgMeta(img, v.Name)
 				if err != nil {
-					slog.Error("get image meta failed", "mkt", mkt, "error", err)
+					slog.Error("get image meta failed", "mkt", mkt, "date", v.Date, "error", err)
 					continue
 				}
 			}
@@ -275,7 +275,7 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 		})
 
 		if err != nil {
-			slog.Error("save to db failed", "mkt", mkt, "error", err)
+			slog.Error("save to db failed", "mkt", mkt, "date", DBImg[0].Date, "error", err)
 			continue
 		}
 
@@ -291,11 +291,11 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 		})
 
 		if err != nil {
-			slog.Error("save to cache db failed", "mkt", mkt, "error", err)
+			slog.Error("save to cache db failed", "mkt", mkt, "date", DBImg[0].Date, "error", err)
 			continue
 		}
 
-		slog.Info("daily image info saved", "mkt", mkt)
+		slog.Info("daily image info saved", "mkt", mkt, "date", DBImg[0].Date, "total", len(DBImg))
 
 		time.Sleep(time.Second)
 	}
