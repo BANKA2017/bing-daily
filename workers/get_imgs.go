@@ -1,7 +1,6 @@
 package workers
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -197,9 +196,7 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 						continue
 					}
 
-					b2uploadResBytes, _ := json.Marshal(uploadResponse)
-
-					slog.Info("uploaded to b2", "mkt", mkt, "date", v.Date, "filename", uploadResponse.FileName, "response", string(b2uploadResBytes))
+					slog.Info("uploaded to b2", "mkt", mkt, "date", v.Date, "filename", uploadResponse.FileName, "sha1", uploadResponse.ContentSha1, "size", uploadResponse.ContentLength)
 				}
 
 				img, err := image2.GetImg(bingDailyImgBuffer)
