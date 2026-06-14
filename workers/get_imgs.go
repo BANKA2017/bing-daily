@@ -158,7 +158,7 @@ func GetImgsWorker(B2ApplicationKeyId, B2ApplicationKey, WorkersLocale string) e
 		}
 
 		if len(tmpDataList) == 0 {
-			slog.Info("no update", "mkt", mkt)
+			// slog.Info("no update", "mkt", mkt)
 			continue
 		}
 
